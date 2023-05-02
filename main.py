@@ -38,7 +38,7 @@ def query_item_by_id(item_id: int) -> Item:
         raise HTTPException(status_code=404, detail=f"Item with {item_id=} does not exist.")
     return items[item_id]
 
-# Dict conating the users query arguments
+# Dict containing the users query arguments
 Selection = dict[
     str, str | int | float | Category | None
 ] 
@@ -86,7 +86,7 @@ def update(
         HTTPException(status_code=404, detail=f"Item with {item_id} does not exist.")
     if all(info is None for info in (name, price, count)):
         raise HTTPException(
-            status_code=400, detail="No parameters provided for update."
+            status_code=400, detail=f"No parameters provided for update."
         )
     
     item = items[item_id]
@@ -104,7 +104,7 @@ def delete_item(item_id: int) -> dict[str, Item]:
 
     if item_id not in items:
         raise HTTPException(
-            status_code=404, detail="Item with {item_id} does not exist."
+            status_code=404, detail=f"Item with {item_id} does not exist."
         )
     
     item = items.pop(item_id)
