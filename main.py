@@ -1,29 +1,34 @@
 from enum import Enum
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, Path, Query
+from pydantic import BaseModel, Field
 
-app = FastAPI()
+app = FastAPI(
+    title="Noah's cards and candy",
+    description="This store will help you get all of your candy and cards that you could ever want",
+    version="0.1.0",
+)
 
 # This class is going to be used to create the categories to be able to sort through different sections
 class Category(Enum):
+    """Category of an item"""
     CANDY = "candy"
     CARDS = "cards"
 
 # This class sets the "base model" of the items that are in the category
 class Item(BaseModel):
-    name: str
-    price: float
-    count: int
-    id: int
-    category: Category
+    name: str = Field(description="Name of the item")
+    price: float = Field(description="Price of the item")
+    count: int = Field(description="Number of the items")
+    id: int = Field(description="Id of the item")
+    category: Category = Field(description="Category of the item")
 
 
 # These are a dict of sample items to be used in the example
 items = {
     0: Item(name="Chocolate_bar", price=1.99, count=50, id=0, category=Category.CANDY),
     1: Item(name="Payday_bar", price=3.99, count=5, id=1, category=Category.CANDY),
-    2: Item(name="Charizard", price=25.99, count=100, id=2, category=Category.CARDS)
+    2: Item(name="Charizard", price=25.99, count=100, id=1, category=Category.CARDS)
 }
 
 
@@ -74,12 +79,18 @@ def add_item(item: Item) -> dict[str, Item]:
     items[item.id] = item
     return {"added": item}
 
-@app.put("/update/{item_id}")
+@app.put("/update/{item_id}",
+         # Allows specifying of error codes
+         responses={
+             404: {"description": "Item not found"},
+             400: {"description": "No arguments specified"}
+         }
+         )
 def update(
-    item_id: int,
-    name: str | None = None,
-    price: float | None = None,
-    count: int | None = None,
+    item_id: int = Path(ge=0, title="Item ID", description="Unique int that specifies an item."),
+    name: str | None = Query(default=None, min_length=1, max_length=8, title="Name", description="New name for the item."),
+    price: float | None = Query(default=None, gt=0.0, title="Price", description="Price for the item"),
+    count: int | None = Query(default=None, ge=0, title="Count", description="Count of the item"),
 ) -> dict[str, Item]:
 
     if item_id not in items:
